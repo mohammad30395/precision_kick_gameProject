@@ -1,4 +1,4 @@
- Use:  
+Use:  
 
 (Make sure you have SDL2 and C++ compiler)
 
