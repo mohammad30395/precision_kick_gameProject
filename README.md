@@ -1,3 +1,3 @@
-Use:
-make (or) make clean && make
+Use:  
+make (or) make clean && make  
 ./precision_kick
