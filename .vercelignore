@@ -1,0 +1,6 @@
+.emsdk/
+.web-assets/
+dist/
+node_modules/
+src/*.o
+src/precision_kick

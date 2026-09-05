@@ -1,0 +1,12 @@
+{
+  "name": "precision-kick-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/build-web.sh",
+    "dev": "npm run build && npx serve dist"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Precision Kick</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #111318;
+        color: #f7f7f7;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      #game-shell {
+        position: relative;
+        width: min(100vw, calc(100vh * 16 / 9));
+        height: min(100vh, calc(100vw * 9 / 16));
+        background: #05070a;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        outline: none;
+      }
+
+      #status {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #111318;
+        color: #f7f7f7;
+        font-size: 18px;
+        text-align: center;
+        transition: opacity 160ms ease;
+        z-index: 2;
+      }
+
+      #status.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #fullscreen {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 3;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(0, 0, 0, 0.44);
+        color: #fff;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 6px;
+        font: 700 13px Arial, Helvetica, sans-serif;
+        cursor: pointer;
+      }
+
+      #fullscreen:hover {
+        background: rgba(0, 0, 0, 0.64);
+      }
+    </style>
+  </head>
+  <body>
+    <main id="game-shell">
+      <div id="status">Loading Precision Kick...</div>
+      <button id="fullscreen" type="button">Full screen</button>
+      <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+    </main>
+
+    <script>
+      var statusElement = document.getElementById("status");
+      var canvasElement = document.getElementById("canvas");
+      var shellElement = document.getElementById("game-shell");
+      var fullscreenButton = document.getElementById("fullscreen");
+
+      canvasElement.addEventListener("click", function () {
+        canvasElement.focus();
+      });
+
+      fullscreenButton.addEventListener("click", function () {
+        if (!document.fullscreenElement) {
+          shellElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+        canvasElement.focus();
+      });
+
+      var Module = {
+        print: function (text) {
+          console.log(text);
+        },
+        printErr: function (text) {
+          console.error(text);
+        },
+        canvas: canvasElement,
+        setStatus: function (text) {
+          if (!text) {
+            statusElement.classList.add("hidden");
+            canvasElement.focus();
+            return;
+          }
+          statusElement.textContent = text;
+          statusElement.classList.remove("hidden");
+        },
+        monitorRunDependencies: function (left) {
+          if (left) {
+            Module.setStatus("Loading game assets...");
+          } else {
+            Module.setStatus("");
+          }
+        },
+      };
+
+      window.onerror = function (event) {
+        Module.setStatus("The game failed to start. Check the browser console.");
+        console.error(event);
+      };
+    </script>
+    {{{ SCRIPT }}}
+  </body>
+</html>

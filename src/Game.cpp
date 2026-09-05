@@ -12,6 +12,10 @@
 #include "../include/ScreenHighestScore.h"
 #include <fstream>
 #include <sstream>
+#ifdef __EMSCRIPTEN__
+#include <cstdlib>
+#include <emscripten/emscripten.h>
+#endif
 
 #include <iostream>
 using namespace std;
@@ -70,7 +74,9 @@ bool Game::init()
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
         cout << "SDL_mixer could not initialize! Mix_Error: " << Mix_GetError() << endl;
+#ifndef __EMSCRIPTEN__
         return false;
+#endif
     }
 
     window = SDL_CreateWindow("PRECISION KICK", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
@@ -104,7 +110,11 @@ bool Game::init()
         fontLoading = fontButton;
     }
 
+#ifdef __EMSCRIPTEN__
+    bgMusic = Mix_LoadMUS("../assets/magic_system.wav");
+#else
     bgMusic = Mix_LoadMUS("../assets/magic_system.mp3");
+#endif
     if (!bgMusic)
     {
         cout << "Failed to load background music! Mix_Error: " << Mix_GetError() << endl;
@@ -234,17 +244,25 @@ string Game::getPlayerName() const
 // handling game in running state
 void Game::run()
 {
-    bool quit = false; // exit flag
+    while (tick())
+    {
+        SDL_Delay(16);
+    }
+}
+
+bool Game::tick()
+{
+    if (state == GameState::QUIT)
+        return false;
+
     SDL_Event e;
 
-    while (!quit && state != GameState::QUIT)
-    {
         while (SDL_PollEvent(&e))
         {
             if (e.type == SDL_QUIT) // quit if window closed
             {
-                quit = true;
                 state = GameState::QUIT;
+                return false;
             }
 
             // Music icon toggle
@@ -296,8 +314,8 @@ void Game::run()
                         setState(GameState::CREDITS);
                     else if (act == 5)
                     {
-                        quit = true;
                         state = GameState::QUIT;
+                        return false;
                     }
                 }
                 else
@@ -317,8 +335,8 @@ void Game::run()
                         setState(GameState::CREDITS);
                     else if (act == 4)
                     {
-                        quit = true;
                         state = GameState::QUIT;
+                        return false;
                     }
                 }
             }
@@ -523,8 +541,7 @@ void Game::run()
         }
 
         SDL_RenderPresent(renderer);
-        SDL_Delay(16);
-    }
+        return state != GameState::QUIT;
 }
 
 void Game::setLevelCompleted(int level)
@@ -660,7 +677,11 @@ void Game::setScoreForPlayer(const string &playerName, int score, int level)
 // Writes every player’s best score for each level to a dat file
 void Game::savePlayerScoresToFile()
 {
+#ifdef __EMSCRIPTEN__
+    ostringstream out;
+#else
     ofstream out("player_scores.dat"); // Open file for writing
+#endif
     for (const auto &[name, levelScores] : playerScores)
     {
         out << name << "\n";
@@ -675,15 +696,37 @@ void Game::savePlayerScoresToFile()
         }
         out << "\n";
     }
+#ifdef __EMSCRIPTEN__
+    string data = out.str();
+    EM_ASM({
+        localStorage.setItem('precision_kick_player_scores', UTF8ToString($0));
+    }, data.c_str());
+#else
     out.close();
+#endif
 }
 
 // Reads every player’s per-level scores from dat file and loads them in memory at game startup.
 void Game::loadPlayerScoresFromFile()
 {
+#ifdef __EMSCRIPTEN__
+    char *storedScores = reinterpret_cast<char *>(EM_ASM_PTR({
+        var data = localStorage.getItem('precision_kick_player_scores');
+        if (!data) return 0;
+        var size = lengthBytesUTF8(data) + 1;
+        var ptr = _malloc(size);
+        stringToUTF8(data, ptr, size);
+        return ptr;
+    }));
+    if (!storedScores)
+        return;
+    istringstream in(storedScores);
+    free(storedScores);
+#else
     ifstream in("player_scores.dat"); // Open score file for reading
     if (!in)
         return;
+#endif
     playerScores.clear();
     string name;
     while (getline(in, name))
@@ -698,7 +741,9 @@ void Game::loadPlayerScoresFromFile()
         playerScores[name][2] = s2;
         playerScores[name][3] = s3;
     }
+#ifndef __EMSCRIPTEN__
     in.close();
+#endif
 }
 
 // Finds the player who has the highest total score

@@ -54,6 +54,7 @@ public:
 
     bool init();
     void run();
+    bool tick();
     void cleanup();
 
     int getWindowWidth() const { return windowWidth; }

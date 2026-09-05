@@ -54,9 +54,9 @@ brew install sdl2 sdl2_image sdl2_ttf sdl2_mixer
 The project includes a `Makefile` for easy compilation.
 
 1. Clone or download the repository.
-2. Navigate to the project directory in your terminal:
+2. Navigate to the source directory in your terminal:
    ```bash
-   cd precision_kick_gameProject
+   cd precision_kick_gameProject/src
    ```
 3. Build the project using `make`:
    ```bash
@@ -67,6 +67,34 @@ The project includes a `Makefile` for easy compilation.
    ```bash
    ./precision_kick
    ```
+
+## 🌐 Browser / Vercel Build
+
+This project can also be compiled to WebAssembly with Emscripten and hosted as a static site on Vercel.
+
+### Local browser build
+
+From the project root:
+
+```bash
+npm install
+npm run build
+npx serve dist
+```
+
+Then open the local URL printed by `serve`.
+
+The first `npm run build` may take several minutes because `scripts/build-web.sh` downloads and activates Emscripten if `em++` is not already installed. Later builds reuse the local `.emsdk` cache.
+
+### Deploy to Vercel
+
+```bash
+npm install -g vercel
+vercel login
+vercel
+```
+
+Vercel will use `vercel.json`, run `npm run build`, and publish the generated `dist/` directory.
 
 ## 📂 Project Structure
 
